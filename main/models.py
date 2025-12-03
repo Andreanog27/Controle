@@ -9,12 +9,43 @@ class Categoria(models.Model):
 
 
 class Despesa(models.Model):
-    descricao = models.CharField(max_length=100)
+    CLASSIFICACAO_CHOICES = [
+        ('fixa', 'Fixa'),
+        ('variavel', 'Variável'),
+    ]
+
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE)
+    descricao = models.CharField(max_length=255)
     valor = models.DecimalField(max_digits=10, decimal_places=2)
+    categoria = models.ForeignKey(Categoria, on_delete=models.SET_NULL, null=True, blank=True)
     data = models.DateField()
-    categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE)
-    usuario = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    classificacao = models.CharField(
+        max_length=10,
+        choices=CLASSIFICACAO_CHOICES,
+        default='variavel'
+    )
 
     def __str__(self):
-        return f"{self.descricao} - R$ {self.valor}"
+        return self.descricao
 
+
+class Receita(models.Model):
+    CLASSIFICACAO_CHOICES = [
+        ('fixa', 'Fixa'),
+        ('variavel', 'Variável'),
+    ]
+
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE)
+    descricao = models.CharField(max_length=255)
+    valor = models.DecimalField(max_digits=10, decimal_places=2)
+    categoria = models.ForeignKey(Categoria, on_delete=models.SET_NULL, null=True, blank=True)
+    data = models.DateField()
+    classificacao = models.CharField(
+        max_length=10,
+        choices=CLASSIFICACAO_CHOICES,
+        default='variavel'
+    )
+
+    def __str__(self):
+        return self.descricao
+    

@@ -9,6 +9,8 @@ from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from .models import Despesa, Categoria
 from .forms import DespesaForm
+from .models import Receita
+from .forms import ReceitaForm
 from django.contrib import messages
 from django.db.models.functions import TruncMonth
 from decimal import Decimal
@@ -46,16 +48,12 @@ def index(request):
 @login_required
 def adicionar_despesa(request):
     if request.method == "POST":
-       data = request.POST.copy()
-       data['valor'] = data['valor'].replace('.', '')  # remove separadores
-
-       form = DespesaForm(data)
-
-       if form.is_valid():
-          despesa = form.save(commit=False)
-          despesa.usuario = request.user
-          despesa.save()
-          return redirect('index')
+        form = DespesaForm(request.POST)
+        if form.is_valid():
+            despesa = form.save(commit=False)
+            despesa.usuario = request.user
+            despesa.save()
+            return redirect('index')
     else:
         form = DespesaForm()
 
@@ -84,14 +82,67 @@ def nova_despesa(request):
 
     return render(request, 'nova_despesa.html', {'categorias': categorias})
 
+@login_required
+def adicionar_receita(request):
+    if request.method == "POST":
+        form = DespesaForm(request.POST)
+        if form.is_valid():
+            despesa = form.save(commit=False)
+            despesa.usuario = request.user
+            despesa.save()
+            return redirect('index')
+    else:
+        form = DespesaForm()
+
+    return render(request, "adicionar_receita.html", {"form": form})
+
+@login_required
+def listar_receitas(request):
+    receitas = Receita.objects.all()
+    return render(request, 'receitas.html', {'receitas': receitas})
+
+@login_required
+def excluir_receita(request, receita_id):
+    if request.method == "POST":
+        try:
+            receita = Receita.objects.get(id=receita_id, usuario=request.user)
+        except Receita.DoesNotExist:
+            messages.error(request, "Receita não encontrada ou não pertence a você.")
+            return redirect("listar_receitas")
+
+        receita.delete()
+        messages.success(request, "Receita excluída com sucesso!")
+        return redirect("listar_receitas")
+
+    messages.warning(request, "A exclusão deve ser feita via POST.")
+    return redirect("listar_receitas")
+
 
 def relatorios(request):
     categorias = Categoria.objects.all()
     despesas = Despesa.objects.filter(usuario=request.user)
 
+    # Pegando filtros da URL (GET)
+    categoria_id = request.GET.get("categoria")
+    data_inicio = request.GET.get("data_inicio")
+    data_fim = request.GET.get("data_fim")
+
+    # Aplicando filtros
+    if categoria_id and categoria_id.isdigit():
+        despesas = despesas.filter(categoria_id=categoria_id)
+    
+    if data_inicio:
+        despesas = despesas.filter(data__gte=data_inicio)
+    
+    if data_fim:
+        despesas = despesas.filter(data__lte=data_fim)
+
     return render(request, "relatorios.html", {
         "categorias": categorias,
         "despesas": despesas,
+        "filtro_categoria": int(categoria_id) if categoria_id else None,
+        "filtro_data_inicio": data_inicio,
+        "filtro_data_fim": data_fim,
     })
      
 
