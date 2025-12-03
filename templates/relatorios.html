@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Relatórios{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">Relatórios</h2>
+
+<div class="card p-4">
+    <h4>Filtros</h4>
+
+    <form method="GET">
+        <label>Data inicial:</label>
+        <input type="date" name="data_inicio" class="form-control">
+
+        <label class="mt-2">Data final:</label>
+        <input type="date" name="data_fim" class="form-control">
+
+        <label class="mt-2">Categoria:</label>
+        <select name="categoria" class="form-control">
+            <option value="">Todas</option>
+            {% for categoria in categorias %}
+                <option value="{{ categoria.id }}">{{ categoria.nome }}</option>
+            {% endfor %}
+        </select>
+
+        <button class="btn btn-primary mt-3" type="submit">Filtrar</button>
+    </form>
+</div>
+
+<hr>
+
+<h4 class="mt-4">Resultados</h4>
+
+{% for despesa in despesas %}
+    <p>
+        <strong>{{ despesa.descricao }}</strong> —
+        R$ {{ despesa.valor }} —
+        {{ despesa.data|date:"d/m/Y" }}
+    </p>
+{% empty %}
+    <p>Nenhuma despesa encontrada.</p>
+{% endfor %}
+
+<a href="{% url 'index' %}" class="btn btn-secondary mt-3">Voltar</a>
+{% endblock %}
+

@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Controle de Gastos{% endblock %}
+
+{% block content %}
+<h2 class="mb-3">Controle de Gastos</h2>
+
+<div class="card p-3 mb-4">
+    <form class="row g-3" method="GET">
+        <div class="col-md-3">
+            <label class="form-label">Mês</label>
+            <input class="form-control" type="number" name="mes" min="1" max="12">
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label">Ano</label>
+            <input class="form-control" type="number" name="ano">
+        </div>
+
+        <div class="col-md-4">
+            <label class="form-label">Categoria</label>
+            <select name="categoria" class="form-select">
+                <option value="">Todas</option>
+                {% for c in categorias %}
+                <option value="{{ c.id }}">{{ c.nome }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="col-md-2 d-flex align-items-end">
+            <button class="btn btn-primary w-100">Filtrar</button>
+        </div>
+    </form>
+</div>
+
+<h4>Total gasto: <strong class="text-danger">R$ {{ total }}</strong></h4>
+
+<table class="table table-striped table-hover mt-3">
+    <thead class="table-primary">
+        <tr>
+            <th>Descrição</th>
+            <th>Valor</th>
+            <th>Data</th>
+            <th>Categoria</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for d in despesas %}
+        <tr>
+            <td>{{ d.descricao }}</td>
+            <td>R$ {{ d.valor }}</td>
+            <td>{{ d.data }}</td>
+            <td>{{ d.categoria.nome }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<a href="/export/csv/" class="btn btn-secondary mt-3">Exportar CSV</a>
+<a href="/export/excel/" class="btn btn-success mt-3 ms-2">Exportar Excel</a>
+
+{% endblock %}

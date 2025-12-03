@@ -1,2 +1,2 @@
-# Controle
-projeto MyMoney
+# controle-de-gastos
+app para controlar despesas
