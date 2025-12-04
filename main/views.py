@@ -22,6 +22,7 @@ from openpyxl.utils import get_column_letter
 from django.http import HttpResponse
 from django.db.models.functions import ExtractMonth
 from .models import Despesa, Categoria
+from django.shortcuts import redirect
 
 
 @login_required
@@ -50,9 +51,15 @@ def index(request):
 
 @login_required
 def adicionar_despesa(request):
+    print('cheguei aqui: 1')
     if request.method == "POST":
+        print('cheguei aqui: 2')
+        print(request.POST)
         form = DespesaForm(request.POST)
+        print("Erros do form:", form.errors)
+
         if form.is_valid():
+            print('cheguei aqui: 3')
             despesa = form.save(commit=False)
             despesa.usuario = request.user  # IMPORTANTE!
             despesa.save()
@@ -101,15 +108,20 @@ def adicionar_receita(request):
     return render(request, "adicionar_receita.html", {"form": form})
 
 def listar_receitas(request):
-    receitas = Receita.objects.all().order_by('-data')
+    # Filtra receitas apenas do usuário logado
+    receitas = Receita.objects.filter(usuario=request.user).order_by('-data')
     return render(request, 'listar_receitas.html', {"receitas": receitas})
 
 @login_required
 def excluir_receita(request, id):
-    receita = get_object_or_404(Receita, id=id, usuario=request.user)
+    # Busca a receita do usuário logado
+    receita = get_object_or_404(Receita, id=id)
+    
     if request.method == "POST":
         receita.delete()
-        return redirect('dashboard')
+        messages.success(request, "Receita excluída com sucesso.")
+    
+    # Sempre redireciona para o dashboard
     return redirect('dashboard')
 
 def relatorios(request):

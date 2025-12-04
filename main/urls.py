@@ -15,13 +15,14 @@ urlpatterns = [
     path('adicionar/', views.adicionar_despesa, name='adicionar_despesa'),
     path('despesa/nova/', views.nova_despesa, name='nova_despesa'),
     path('despesa/<int:despesa_id>/excluir/', views.excluir_despesa, name='excluir_despesa'),
-    path('receita/excluir/<int:id>/', views.excluir_receita, name='excluir_receita'),
+   
 
 
     # RECEITAS
     path("receitas/", views.listar_receitas, name="listar_receitas"),
     path("receitas/adicionar/", views.adicionar_receita, name="adicionar_receita"),
-    path("receitas/excluir/<int:receita_id>/", views.excluir_receita, name="excluir_receita"),
+     path('receita/excluir/<int:id>/', views.excluir_receita, name='excluir_receita'),
+   
 
     # RELATÓRIOS & DASHBOARD
     path('relatorios/', views.relatorios, name='relatorios'),

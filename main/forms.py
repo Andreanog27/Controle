@@ -8,12 +8,18 @@ class DespesaForm(forms.ModelForm):
     class Meta:
         model = Despesa
         fields = ["descricao", "valor", "categoria", "data", "classificacao"]
+        labels = {
+            "descricao": "Descrição da despesa",
+            "valor": "Valor (R$)",
+            "categoria": "Categoria",
+            "data": "Data da despesa",
+            "classificacao": "Tipo de Classificação",
+        }
         widgets = {
             "descricao": forms.TextInput(attrs={"class": "form-control"}),
             "valor": forms.NumberInput(attrs={"class": "form-control", "step": "0.01"}),
             "categoria": forms.Select(attrs={"class": "form-control"}),
             "data": forms.DateInput(attrs={"class": "form-control", "type": "date"}),
-            "classificacao": forms.Select(attrs={"class": "form-control"}),
         }
 
     def __init__(self, *args, **kwargs):

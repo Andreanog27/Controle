@@ -27,7 +27,9 @@ class Despesa(models.Model):
     classificacao = models.CharField(
         max_length=10,
         choices=CLASSIFICACAO_CHOICES,
-        default='variavel'
+        default='variavel',
+        null=True, 
+        blank=True
     )
 
     def __str__(self):
