@@ -1,214 +1,256 @@
 {% extends 'base.html' %}
-{% block title %}Dashboard{% endblock %}
-
+{% load static %}
 {% block content %}
 
-<!-- Mensagens -->
-{% if messages %}
-<div class="container mt-3">
-    {% for message in messages %}
-        <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm" role="alert">
-            {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
-        </div>
-    {% endfor %}
-</div>
-{% endif %}
+<div class="container mt-4">
+    <h2 class="fw-bold mb-4">Dashboard Financeiro</h2>
 
-<!-- Cards de resumo -->
-<div class="row g-4 mt-4">
+    <!-- Cards Resumo -->
+    <div class="row g-4 mb-4">
 
-    {% if total_gastos > 0 %}
         <!-- Total de Gastos -->
         <div class="col-md-6 col-lg-3">
-            <div class="card p-4 text-white shadow summary-card
-                {% if total_gastos > 5000 %} bg-danger
-                {% elif total_gastos > 2500 %} bg-warning
-                {% else %} bg-success{% endif %}">
+            <div class="card p-4 bg-danger text-white shadow summary-card">
                 <h5 class="card-title fw-bold">Total de Gastos</h5>
                 <p class="card-text fs-3">R$ {{ total_gastos }}</p>
             </div>
         </div>
 
-        <!-- Média mensal -->
+        <!-- Total Recebido -->
         <div class="col-md-6 col-lg-3">
-            <div class="card p-4 bg-info text-white shadow summary-card">
+            <div class="card p-4 bg-success text-white shadow summary-card">
+                <h5 class="card-title fw-bold">Total Recebido</h5>
+                <p class="card-text fs-3">R$ {{ total_receitas }}</p>
+            </div>
+        </div>
+
+        <!-- Saldo -->
+        <div class="col-md-6 col-lg-3">
+            <div class="card p-4 {% if saldo >= 0 %}bg-primary text-white{% else %}bg-danger text-white{% endif %} shadow summary-card">
+                <h5 class="card-title fw-bold">Saldo</h5>
+                <p class="card-text fs-3">R$ {{ saldo }}</p>
+            </div>
+        </div>
+
+        <!-- Média Mensal -->
+        <div class="col-md-6 col-lg-3">
+            <div class="card p-4 bg-dark text-white shadow summary-card">
                 <h5 class="card-title fw-bold">Média Mensal</h5>
                 <p class="card-text fs-3">R$ {{ media_mensal|floatformat:2 }}</p>
             </div>
         </div>
 
-    {% else %}
-        <div class="col-12">
-            <div class="alert alert-warning shadow-sm text-center">
-                Nenhuma despesa cadastrada.
+    </div>
+
+    <!-- Gráficos -->
+    <div class="row g-4">
+
+        <!-- Gráfico de Gastos Mensais -->
+        <div class="col-md-6">
+            <div class="card p-4 shadow">
+                <h5 class="card-title mb-4 fw-bold">Gastos Mensais</h5>
+                <canvas id="gastosMensaisChart"></canvas>
             </div>
         </div>
-    {% endif %}
 
-    <!-- Nova despesa -->
-    <div class="col-md-6 col-lg-3">
-        <div class="card p-4 shadow">
-            <h5 class="card-title fw-bold">Nova Despesa</h5>
-            <a href="{% url 'adicionar_despesa' %}" class="btn btn-primary mt-3 w-100">Adicionar</a>
-        </div>
-    </div>
-
-    <!-- Relatórios -->
-    <div class="col-md-6 col-lg-3">
-        <div class="card p-4 shadow">
-            <h5 class="card-title fw-bold">Relatórios</h5>
-            <a href="{% url 'relatorios' %}" class="btn btn-secondary mt-3 w-100">Ver Relatórios</a>
-        </div>
-    </div>
-</div>
-
-<!-- Gráficos -->
-<div class="row mt-5 g-4">
-    <div class="col-md-6">
-        <div class="card p-4 shadow">
-            <h5 class="card-title mb-4 fw-bold">Gastos Mensais</h5>
-            <canvas id="gastosMensaisChart"></canvas>
-        </div>
-    </div>
-
-    <div class="col-md-6">
-        <div class="card p-4 shadow">
-            <h5 class="card-title mb-4 fw-bold">Gastos por Categoria</h5>
-            <canvas id="gastosCategoriaChart"></canvas>
-        </div>
-    </div>
-</div>
-
-<!-- Botões de Exportação -->
-<div class="d-flex justify-content-end gap-2 mt-4">
-    <a href="{% url 'exportar_excel' %}" class="btn btn-success shadow-sm">Exportar Excel</a>
-    <a href="{% url 'exportar_csv' %}" class="btn btn-warning shadow-sm">Exportar CSV</a>
-</div>
-
-<!-- Lista de despesas -->
-<h4 class="mt-5 fw-bold mb-3">Despesas Recentes</h4>
-<div class="row g-4">
-    {% for despesa in despesas %}
-    <div class="col-md-6 col-lg-4">
-        <div class="card p-4 shadow-sm card-despesa">
-            
-
-            <div class="d-flex justify-content-between align-items-start">
-                <h5 class="card-title fw-bold">{{ despesa.descricao }}</h5>
-                <a href="#" class="text-danger fs-4" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal{{ despesa.id }}">
-                    <i class="bi bi-trash-fill"></i>
-                </a>
+        <!-- Gráfico de Receitas Mensais -->
+        <div class="col-md-6">
+            <div class="card p-4 shadow">
+                <h5 class="card-title mb-4 fw-bold">Receitas Mensais</h5>
+                <canvas id="receitasMensaisChart"></canvas>
             </div>
+        </div>
 
-            <p class="card-text fs-5">R$ {{ despesa.valor }}</p>
-            <p class="card-text text-muted"><small>{{ despesa.data|date:"d/m/Y" }}</small></p>
+        <!-- Gráfico por Categoria -->
+        <div class="col-md-12">
+            <div class="card p-4 shadow">
+                <h5 class="card-title mb-4 fw-bold">Gastos por Categoria</h5>
+                <canvas id="categoriasChart"></canvas>
+            </div>
+        </div>
 
-            <!-- Modal de confirmação -->
-            <div class="modal fade" id="confirmDeleteModal{{ despesa.id }}" tabindex="-1" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Confirmar exclusão</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                        </div>
-                        <div class="modal-body">
-                            Tem certeza que deseja excluir a despesa <strong>{{ despesa.descricao }}</strong>?
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                            <form method="post" action="{% url 'excluir_despesa' despesa.id %}">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-danger">Excluir</button>
-                            </form>
+    </div>
+
+    <!-- ===================================== -->
+    <!-- LISTA DE RECEITAS (COM EXCLUSÃO)      -->
+    <!-- ===================================== -->
+    <h3 class="mt-5 fw-bold">Receitas Recentes</h3>
+    <div class="row g-4">
+        {% for rec in receitas %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card p-4 shadow-sm">
+
+                <div class="d-flex justify-content-between align-items-start">
+                    <h5 class="card-title fw-bold">{{ rec.descricao }}</h5>
+
+                    <a href="#" class="text-danger fs-4" data-bs-toggle="modal" data-bs-target="#deleteReceita{{ rec.id }}">
+                        <i class="bi bi-trash-fill"></i>
+                    </a>
+                </div>
+
+                <p class="card-text fs-5">R$ {{ rec.valor }}</p>
+                <p class="card-text text-muted"><small>{{ rec.data|date:"d/m/Y" }}</small></p>
+
+                <!-- Modal -->
+                <div class="modal fade" id="deleteReceita{{ rec.id }}" tabindex="-1">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+
+                            <div class="modal-header">
+                                <h5 class="modal-title">Excluir Receita</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+
+                            <div class="modal-body">
+                                Tem certeza que deseja excluir <strong>{{ rec.descricao }}</strong>?
+                            </div>
+
+                            <div class="modal-footer">
+                                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+
+                                <form method="post" action="{% url 'excluir_receita' rec.id %}">
+                                    {% csrf_token %}
+                                    <button class="btn btn-danger">Excluir</button>
+                                </form>
+
+                            </div>
+
                         </div>
                     </div>
                 </div>
-            </div>
 
+            </div>
         </div>
+        {% empty %}
+        <p class="text-muted">Nenhuma receita cadastrada.</p>
+        {% endfor %}
     </div>
-    {% empty %}
-        <p class="text-muted text-center">Nenhuma despesa cadastrada ainda.</p>
-    {% endfor %}
+
+    <!-- ===================================== -->
+    <!-- LISTA DE DESPESAS (COM EXCLUSÃO)      -->
+    <!-- ===================================== -->
+    <h3 class="mt-5 fw-bold">Despesas Recentes</h3>
+    <div class="row g-4">
+        {% for desp in despesas %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card p-4 shadow-sm">
+
+                <div class="d-flex justify-content-between align-items-start">
+                    <h5 class="card-title fw-bold">{{ desp.descricao }}</h5>
+
+                    <a href="#" class="text-danger fs-4" data-bs-toggle="modal" data-bs-target="#deleteDespesa{{ desp.id }}">
+                        <i class="bi bi-trash-fill"></i>
+                    </a>
+                </div>
+
+                <p class="card-text fs-5">R$ {{ desp.valor }}</p>
+                <p class="card-text text-muted"><small>{{ desp.data|date:"d/m/Y" }}</small></p>
+
+                <!-- Modal -->
+                <div class="modal fade" id="deleteDespesa{{ desp.id }}" tabindex="-1">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+
+                            <div class="modal-header">
+                                <h5 class="modal-title">Excluir Despesa</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+
+                            <div class="modal-body">
+                                Tem certeza que deseja excluir <strong>{{ desp.descricao }}</strong>?
+                            </div>
+
+                            <div class="modal-footer">
+                                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+
+                                <form method="post" action="{% url 'excluir_despesa' desp.id %}">
+                                    {% csrf_token %}
+                                    <button class="btn btn-danger">Excluir</button>
+                                </form>
+
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        {% empty %}
+        <p class="text-muted">Nenhuma despesa cadastrada.</p>
+        {% endfor %}
+    </div>
+
 </div>
 
-
-<!-- Dados para os gráficos -->
-{{ meses|json_script:"meses-data" }}
+<!-- JSON Scripts -->
 {{ valores_gastos|json_script:"valores-gastos-data" }}
-{{ categorias_labels|json_script:"categorias-data" }}
-{{ categorias_valores|json_script:"valores-categoria-data" }}
+{{ valores_receitas|json_script:"valores-receitas-data" }}
+{{ categorias_labels|json_script:"categorias-labels-data" }}
+{{ categorias_valores|json_script:"categorias-valores-data" }}
+{{ meses|json_script:"meses-data" }}
 
+<!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <script>
-    const meses = JSON.parse(document.getElementById('meses-data').textContent);
-    const valoresGastos = JSON.parse(document.getElementById('valores-gastos-data').textContent);
-    const categorias = JSON.parse(document.getElementById('categorias-data').textContent);
-    const valoresCategoria = JSON.parse(document.getElementById('valores-categoria-data').textContent);
+const meses = JSON.parse(document.getElementById('meses-data').textContent);
+const valoresGastos = JSON.parse(document.getElementById('valores-gastos-data').textContent);
+const valoresReceitas = JSON.parse(document.getElementById('valores-receitas-data').textContent);
+const categoriasLabels = JSON.parse(document.getElementById('categorias-labels-data').textContent);
+const categoriasValores = JSON.parse(document.getElementById('categorias-valores-data').textContent);
 
-    new Chart(document.getElementById('gastosMensaisChart'), {
-        type: 'line',
-        data: {
-            labels: meses,
-            datasets: [{
-                label: 'Gastos',
-                data: valoresGastos,
-                backgroundColor: 'rgba(0, 198, 255, 0.2)',
-                borderColor: 'rgba(0, 123, 255, 1)',
-                borderWidth: 3,
-                fill: true,
-                tension: 0.3,
-                pointBackgroundColor: 'rgba(0, 123, 255, 1)',
-                pointRadius: 5
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: { legend: { display: true } },
-            interaction: { mode: 'nearest', intersect: false },
-            scales: { y: { beginAtZero: true } }
-        }
-    });
+// Gastos
+new Chart(document.getElementById('gastosMensaisChart'), {
+    type: 'line',
+    data: {
+        labels: meses,
+        datasets: [{
+            label: 'Gastos',
+            data: valoresGastos,
+            backgroundColor: 'rgba(255, 99, 132, 0.3)',
+            borderColor: 'rgba(255, 0, 80, 1)',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.3
+        }]
+    },
+    options: { scales: { y: { beginAtZero: true } } }
+});
 
-    const cores = categorias.map(() => `rgb(${Math.random()*255}, ${Math.random()*255}, ${Math.random()*255})`);
+// Receitas
+new Chart(document.getElementById('receitasMensaisChart'), {
+    type: 'line',
+    data: {
+        labels: meses,
+        datasets: [{
+            label: 'Receitas',
+            data: valoresReceitas,
+            backgroundColor: 'rgba(0, 255, 127, 0.3)',
+            borderColor: 'rgba(0, 200, 100, 1)',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.3
+        }]
+    },
+    options: { scales: { y: { beginAtZero: true } } }
+});
 
-    new Chart(document.getElementById('gastosCategoriaChart'), {
-        type: 'pie',
-        data: {
-            labels: categorias,
-            datasets: [{ data: valoresCategoria, backgroundColor: cores, borderWidth: 1 }]
-        },
-        options: {
-            responsive: true,
-            plugins: { legend: { position: 'bottom' } }
-        }
-    });
+// Categoria
+new Chart(document.getElementById('categoriasChart'), {
+    type: 'bar',
+    data: {
+        labels: categoriasLabels,
+        datasets: [{
+            label: 'Gastos',
+            data: categoriasValores,
+            backgroundColor: 'rgba(54, 162, 235, 0.3)',
+            borderColor: 'rgba(54, 162, 235, 1)',
+            borderWidth: 2
+        }]
+    },
+    options: { scales: { y: { beginAtZero: true } } }
+});
 </script>
-
-<style>
-/* Ajustes para modo escuro */
-body.dark-mode .card-title,
-body.dark-mode .card-text,
-body.dark-mode h4,
-body.dark-mode label {
-    color: #ffffff !important;
-}
-
-/* Ícones brancos no modo escuro */
-body.dark-mode .bi-trash-fill,
-body.dark-mode .btn-primary,
-body.dark-mode .btn-secondary {
-    color: #fff !important;
-}
-
-/* Botões mais visíveis no modo escuro */
-body.dark-mode .btn-primary { background-color:#0d6efd !important; }
-body.dark-mode .btn-secondary { background-color:#6c757d !important; }
-
-/* Gráficos texto no modo escuro */
-body.dark-mode canvas { filter: brightness(1.3); }
-
-</style>
 
 {% endblock %}

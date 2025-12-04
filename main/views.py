@@ -5,8 +5,11 @@ import calendar
 from datetime import datetime
 from django.db.models import Sum
 from django.contrib.auth.forms import UserCreationForm
+from .forms import RegistroForm
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
+from django.urls import path, include
 from .models import Despesa, Categoria
 from .forms import DespesaForm
 from .models import Receita
@@ -51,13 +54,14 @@ def adicionar_despesa(request):
         form = DespesaForm(request.POST)
         if form.is_valid():
             despesa = form.save(commit=False)
-            despesa.usuario = request.user
+            despesa.usuario = request.user  # IMPORTANTE!
             despesa.save()
             return redirect('index')
     else:
         form = DespesaForm()
 
-    return render(request, "adicionar.html", {"form": form})
+    return render(request, 'adicionar_despesa.html', {'form': form})
+
 
 def nova_despesa(request):
     categorias = Categoria.objects.all()
@@ -85,38 +89,28 @@ def nova_despesa(request):
 @login_required
 def adicionar_receita(request):
     if request.method == "POST":
-        form = DespesaForm(request.POST)
+        form = ReceitaForm(request.POST)
         if form.is_valid():
-            despesa = form.save(commit=False)
-            despesa.usuario = request.user
-            despesa.save()
+            receita = form.save(commit=False)
+            receita.usuario = request.user
+            receita.save()
             return redirect('index')
     else:
-        form = DespesaForm()
+        form = ReceitaForm()
 
     return render(request, "adicionar_receita.html", {"form": form})
 
-@login_required
 def listar_receitas(request):
-    receitas = Receita.objects.all()
-    return render(request, 'receitas.html', {'receitas': receitas})
+    receitas = Receita.objects.all().order_by('-data')
+    return render(request, 'listar_receitas.html', {"receitas": receitas})
 
 @login_required
-def excluir_receita(request, receita_id):
+def excluir_receita(request, id):
+    receita = get_object_or_404(Receita, id=id, usuario=request.user)
     if request.method == "POST":
-        try:
-            receita = Receita.objects.get(id=receita_id, usuario=request.user)
-        except Receita.DoesNotExist:
-            messages.error(request, "Receita não encontrada ou não pertence a você.")
-            return redirect("listar_receitas")
-
         receita.delete()
-        messages.success(request, "Receita excluída com sucesso!")
-        return redirect("listar_receitas")
-
-    messages.warning(request, "A exclusão deve ser feita via POST.")
-    return redirect("listar_receitas")
-
+        return redirect('dashboard')
+    return redirect('dashboard')
 
 def relatorios(request):
     categorias = Categoria.objects.all()
@@ -146,48 +140,74 @@ def relatorios(request):
     })
      
 
+def fazer_login(request):
+    if request.method == "POST":
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+
+        user = authenticate(request, username=username, password=password)
+
+        if user:
+            login(request, user)
+            return redirect('index')
+        else:
+            messages.error(request, "Usuário ou senha inválidos.")
+
+    return render(request, 'login.html')
+
+
 def registrar(request):
     if request.method == "POST":
-        form = UserCreationForm(request.POST)
+        form = RegistroForm(request.POST)
         if form.is_valid():
-            usuario = form.save()
-            login(request, usuario)  # loga automaticamente
-            return redirect('index')
+            user = form.save(commit=False)
+            user.set_password(form.cleaned_data["password"])
+            user.save()
+            messages.success(request, "Conta criada com sucesso! Faça login.")
+            return redirect('login')
     else:
-        form = UserCreationForm()
-    return render(request, 'registration/register.html', {'form': form})
+        form = RegistroForm()
+
+    return render(request, 'registrar.html')
+
+
+def sair(request):
+    logout(request)
+    return redirect('login')
 
 @login_required
 def dashboard(request):
     usuario = request.user
+
     despesas = Despesa.objects.filter(usuario=usuario).order_by("data")
+    receitas = Receita.objects.filter(usuario=usuario).order_by("data")
 
-    # Total gasto
     total_gastos = despesas.aggregate(total=Sum("valor"))["total"] or 0
+    total_receitas = receitas.aggregate(total=Sum("valor"))["total"] or 0
 
-    # Média mensal
-    media_mensal = total_gastos / 12 if total_gastos > 0 else 0
+    saldo = total_receitas - total_gastos
 
-    # Gráfico mensal
+    # Gráfico mensal de DESPESAS
     meses = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"]
+    valores_gastos = [
+        float(despesas.filter(data__month=m).aggregate(total=Sum("valor"))["total"] or 0)
+        for m in range(1, 13)
+    ]
 
-    valores_gastos = []
-    for mes in range(1, 12 + 1):
-        total_mes = despesas.filter(data__month=mes).aggregate(total=Sum("valor"))["total"]
-        valores_gastos.append(float(total_mes) if total_mes else 0)
-
-    # Gráfico de pizza (categorias do banco)
+    # Gráfico de pizza
     categorias_labels = list(Categoria.objects.values_list("nome", flat=True))
 
-    categorias_valores = []
-    for nome in categorias_labels:
-        total_cat = despesas.filter(categoria__nome=nome).aggregate(total=Sum("valor"))["total"]
-        categorias_valores.append(float(total_cat) if total_cat else 0)
+    categorias_valores = [
+        float(despesas.filter(categoria__nome=nome).aggregate(total=Sum("valor"))["total"] or 0)
+        for nome in categorias_labels
+    ]
 
     context = {
         "despesas": despesas,
+        "receitas": receitas,
         "total_gastos": total_gastos,
-        "media_mensal": media_mensal,
+        "total_receitas": total_receitas,
+        "saldo": saldo,
         "meses": meses,
         "valores_gastos": valores_gastos,
         "categorias_labels": categorias_labels,
@@ -277,3 +297,4 @@ def exportar_csv(request):
         writer.writerow([d.descricao, d.categoria, d.valor, d.data])
 
     return response
+

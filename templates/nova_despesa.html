@@ -3,52 +3,41 @@
 {% block title %}Adicionar Despesa{% endblock %}
 
 {% block content %}
-<div class="container mt-4" style="max-width: 600px;">
+<h2 class="mb-4">Adicionar Despesa</h2>
 
-    <div class="card p-4 shadow-sm">
-        <h3 class="mb-4">
-            <i class="bi bi-plus-circle"></i> Adicionar Despesa
-        </h3>
+<div class="card p-4">
+    <form method="POST">
+        {% csrf_token %}
 
-        <form method="POST">
-            {% csrf_token %}
+        <div class="mb-3">
+            {{ form.descricao.label_tag }}
+            {{ form.descricao }}
+        </div>
 
-            <!-- Descrição -->
-            <div class="mb-3">
-                <label for="id_descricao" class="form-label">Descrição</label>
-                {{ form.descricao }}
-            </div>
+        <div class="mb-3">
+            {{ form.valor.label_tag }}
+            {{ form.valor }}
+        </div>
 
-            <!-- Valor -->
-            <div class="mb-3">
-                <label for="id_valor" class="form-label">Valor</label>
-                {{ form.valor }}
-            </div>
+        <div class="mb-3">
+            {{ form.categoria.label_tag }}
+            {{ form.categoria }}
+        </div>
 
-            <!-- Categoria -->
-            <div class="mb-3">
-                <label for="id_categoria" class="form-label">Categoria</label>
-                {{ form.categoria }}
-            </div>
+        <div class="mb-3">
+            {{ form.classificacao.label_tag }}
+            {{ form.classificacao }}
+        </div>
 
-            <!-- Data -->
-            <div class="mb-3">
-                <label for="id_data" class="form-label">Data</label>
-                {{ form.data }}
-            </div>
+        <div class="mb-3">
+            {{ form.data.label_tag }}
+            {{ form.data }}
+        </div>
 
-            <!-- Classificação -->
-            <div class="mb-3">
-                <label for="id_classificacao" class="form-label">Classificação</label>
-                {{ form.classificacao }}
-            </div>
-
-            <!-- Botão Salvar -->
-            <button type="submit" class="btn btn-primary w-100">
-                <i class="bi bi-check-circle"></i> Salvar
-            </button>
-        </form>
-    </div>
-
+        <button class="btn btn-primary w-100 mt-3" type="submit">Salvar</button>
+    </form>
 </div>
+
+<a href="{% url 'index' %}" class="btn btn-secondary mt-3">Voltar</a>
+
 {% endblock %}

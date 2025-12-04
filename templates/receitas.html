@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 
-{% block title %}Listar de Receitas{% endblock %}
+{% block title %}Adicionar Receitas{% endblock %}
 
 {% block content %}
-<h2 class="mb-4">Listar de Receitas</h2>
+<h2 class="mb-4">Adicionar Receita</h2>
 
 <div class="card p-4">
     <form method="POST">
@@ -25,38 +25,14 @@
         </p>
 
         <p>
-            {{ form.classificacao.label_tag }}
-            {{ form.classificacao }}
+            {{ form.data.label_tag }}
+            {{ form.data }}
         </p>
 
+        <button class="btn btn-primary w-100 mt-3" type="submit">Salvar</button>
+    </form>
+</div>
 
-{% if receitas %}
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Título</th>
-            <th>Descrição</th>
-            <th>Valor</th>
-            <th>Categoria</th>
-            <th>Classificação</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for receita in receitas %}
-        <tr>
-            <td>{{ receita.titulo }}</td>
-            <td>{{ receita.descricao }}</td>
-            <td>{{ receita.valor }}</td>
-            <td>{{ receita.categoria.nome }}</td>
-            <td>{{ receita.classificacao }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-{% else %}
-<p class="alert alert-info">Nenhuma receita cadastrada.</p>
-{% endif %}
-
-<a href="{% url 'adicionar_receita' %}" class="btn btn-primary mt-3">Adicionar Receita</a>
 <a href="{% url 'index' %}" class="btn btn-secondary mt-3">Voltar</a>
+
 {% endblock %}
