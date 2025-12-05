@@ -23,7 +23,8 @@ from django.http import HttpResponse
 from django.db.models.functions import ExtractMonth
 from .models import Despesa, Categoria
 from django.shortcuts import redirect
-
+from django.utils.timezone import now
+from datetime import timedelta
 
 @login_required
 def index(request):
@@ -199,16 +200,41 @@ def dashboard(request):
 
     saldo = total_receitas - total_gastos
 
-    # Gráfico mensal de DESPESAS
-    meses = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"]
+    # --- CÁLCULO DA MÉDIA MENSAL ---
+    if despesas.exists():
+        primeiro_registro = despesas.order_by("data").first().data
+        hoje = datetime.today().date()  # corrigido
+
+        meses = (hoje.year - primeiro_registro.year) * 12 + (hoje.month - primeiro_registro.month)
+        meses = max(meses, 1)  # para evitar divisão por zero
+
+        media_mensal = total_gastos / meses
+    else:
+        media_mensal = 0
+
+    # --- RECEITA MENSAL DO MÊS ATUAL ---
+    hoje = datetime.today().date()  # corrigido
+    receita_mensal = receitas.filter(
+        data__year=hoje.year,
+        data__month=hoje.month
+    ).aggregate(Sum("valor"))["valor__sum"] or 0
+
+    # --- Gráfico mensal de DESPESAS ---
+    meses_labels = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"]
     valores_gastos = [
         float(despesas.filter(data__month=m).aggregate(total=Sum("valor"))["total"] or 0)
         for m in range(1, 13)
     ]
 
-    # Gráfico de pizza
-    categorias_labels = list(Categoria.objects.values_list("nome", flat=True))
+# --- Gráfico mensal de RECEITAS ---
+    valores_receitas = [
+    float(receitas.filter(data__month=m).aggregate(total=Sum("valor"))["total"] or 0)
+    for m in range(1, 13)
+    ]
 
+
+    # --- Gráfico de pizza por categoria ---
+    categorias_labels = list(Categoria.objects.values_list("nome", flat=True))
     categorias_valores = [
         float(despesas.filter(categoria__nome=nome).aggregate(total=Sum("valor"))["total"] or 0)
         for nome in categorias_labels
@@ -220,13 +246,17 @@ def dashboard(request):
         "total_gastos": total_gastos,
         "total_receitas": total_receitas,
         "saldo": saldo,
-        "meses": meses,
+        "media_mensal": media_mensal,         # adicionada
+        "receita_mensal": receita_mensal,     # adicionada
+        "meses": meses_labels,
         "valores_gastos": valores_gastos,
+        "valores_receitas": valores_receitas,   # <- adicionada
         "categorias_labels": categorias_labels,
         "categorias_valores": categorias_valores,
     }
 
     return render(request, "dashboard.html", context)
+
 
 @login_required
 def excluir_despesa(request, despesa_id):
