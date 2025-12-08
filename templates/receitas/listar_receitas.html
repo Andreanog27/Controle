@@ -25,6 +25,8 @@
                 <td>{{ r.get_categoria_display }}</td>
                 <td>{{ r.data|date:"d/m/Y" }}</td>
                 <td>
+                     <a href="{% url 'editar_receita' r.id %}" class="btn btn-warning btn-sm">Editar</a>
+                     
                     <!-- Formulário para exclusão via POST -->
                     <form method="POST" action="{% url 'excluir_receita' r.id %}" style="display:inline;">
                         {% csrf_token %}

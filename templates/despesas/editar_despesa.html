@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card p-4">
+    <h3>Editar Despesa</h3>
+
+    <form method="POST">
+        {% csrf_token %}
+
+        <label>Descrição</label>
+        <input type="text" name="descricao" class="form-control"
+               value="{{ despesa.descricao }}" required>
+
+        <label class="mt-2">Valor</label>
+        <input type="number" step="0.01" name="valor" class="form-control"
+               value="{{ despesa.valor }}" required>
+
+        <label class="mt-2">Data</label>
+        <input type="date" name="data" class="form-control"
+               value="{{ despesa.data|date:'Y-m-d' }}" required>
+
+        <label class="mt-2">Categoria</label>
+        <select name="categoria" class="form-control">
+            {% for c in categorias %}
+                <option value="{{ c.id }}" {% if c.id == despesa.categoria.id %}selected{% endif %}>
+                    {{ c.nome }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <button class="btn btn-primary mt-3">Salvar</button>
+    </form>
+</div>
+{% endblock %}

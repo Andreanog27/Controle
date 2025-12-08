@@ -2,7 +2,7 @@ from django.contrib.auth import logout
 from django.shortcuts import redirect
 from django.urls import path
 from . import views
-from .views import exportar_excel, exportar_csv
+from .views import listar_despesas, listar_receitas, exportar_excel, exportar_csv
 
 def logout_view(request):
     logout(request)
@@ -14,14 +14,17 @@ urlpatterns = [
     # DESPESAS
     path('adicionar/', views.adicionar_despesa, name='adicionar_despesa'),
     path('despesa/nova/', views.nova_despesa, name='nova_despesa'),
+    path('despesas/', listar_despesas, name='listar_despesas'),
+    path('despesa/<int:id>/editar/', views.editar_despesa, name='editar_despesa'),
     path('despesa/<int:despesa_id>/excluir/', views.excluir_despesa, name='excluir_despesa'),
    
 
 
     # RECEITAS
-    path("receitas/", views.listar_receitas, name="listar_receitas"),
+    path('receitas/', listar_receitas, name='listar_receitas'),
     path("receitas/adicionar/", views.adicionar_receita, name="adicionar_receita"),
-     path('receita/excluir/<int:id>/', views.excluir_receita, name='excluir_receita'),
+    path('receita/<int:id>/editar/', views.editar_receita, name='editar_receita'),
+    path('receita/excluir/<int:id>/', views.excluir_receita, name='excluir_receita'),
    
 
     # RELATÓRIOS & DASHBOARD

@@ -70,6 +70,10 @@ def adicionar_despesa(request):
 
     return render(request, 'adicionar_despesa.html', {'form': form})
 
+@login_required
+def listar_despesas(request):
+    despesas = Despesa.objects.filter(usuario=request.user).order_by('-data')
+    return render(request, 'despesas/listar_despesas.html', {"despesas": despesas})
 
 def nova_despesa(request):
     categorias = Categoria.objects.all()
@@ -77,7 +81,7 @@ def nova_despesa(request):
     if request.method == 'POST':
         descricao = request.POST['descricao']
         valor = request.POST['valor']
-        categoria_id = request.POST['categoria']  # agora recebemos um ID
+        categoria_id = request.POST['categoria']  
 
         categoria = get_object_or_404(Categoria, id=categoria_id)
         
@@ -94,6 +98,23 @@ def nova_despesa(request):
 
     return render(request, 'nova_despesa.html', {'categorias': categorias})
 
+def editar_despesa(request, id):
+    despesa = get_object_or_404(Despesa, id=id)
+
+    if request.method == "POST":
+        despesa.descricao = request.POST.get("descricao")
+        despesa.valor = request.POST.get("valor")
+        despesa.data = request.POST.get("data")
+        despesa.categoria_id = request.POST.get("categoria")
+        despesa.save()
+        return redirect("dashboard")
+
+    categorias = Categoria.objects.all()
+    return render(request, "despesas/editar_despesa.html", {
+        "despesa": despesa,
+        "categorias": categorias
+    })
+
 @login_required
 def adicionar_receita(request):
     if request.method == "POST":
@@ -108,10 +129,25 @@ def adicionar_receita(request):
 
     return render(request, "adicionar_receita.html", {"form": form})
 
+@login_required
 def listar_receitas(request):
-    # Filtra receitas apenas do usuário logado
     receitas = Receita.objects.filter(usuario=request.user).order_by('-data')
-    return render(request, 'listar_receitas.html', {"receitas": receitas})
+    return render(request, 'receitas/listar_receitas.html', {"receitas": receitas})
+
+
+def editar_receita(request, id):
+    receita = get_object_or_404(Receita, id=id)
+
+    if request.method == "POST":
+        receita.descricao = request.POST.get("descricao")
+        receita.valor = request.POST.get("valor")
+        receita.data = request.POST.get("data")
+        receita.save()
+        return redirect("listar_receitas")
+
+    return render(request, "receitas/editar_receita.html", {
+        "receita": receita
+    })
 
 @login_required
 def excluir_receita(request, id):
