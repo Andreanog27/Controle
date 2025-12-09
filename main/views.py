@@ -107,7 +107,7 @@ def editar_despesa(request, id):
         despesa.data = request.POST.get("data")
         despesa.categoria_id = request.POST.get("categoria")
         despesa.save()
-        return redirect("dashboard")
+        return redirect("listar_despesas")
 
     categorias = Categoria.objects.all()
     return render(request, "despesas/editar_despesa.html", {
