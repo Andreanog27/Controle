@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container mt-4">
+
     <h2 class="mb-4">Despesas</h2>
 
     <a href="{% url 'adicionar_despesa' %}" class="btn btn-success mb-3">Adicionar Despesa</a>
@@ -39,7 +39,7 @@
             {% endfor %}
         </tbody>
     </table>
-</div>
+
 
 <a href="/export/csv/" class="btn btn-success mt-3">Exportar CSV</a>
 <a href="/export/excel/" class="btn btn-success mt-3 ms-2">Exportar Excel</a>
