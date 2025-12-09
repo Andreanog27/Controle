@@ -64,7 +64,7 @@ def adicionar_despesa(request):
             despesa = form.save(commit=False)
             despesa.usuario = request.user  # IMPORTANTE!
             despesa.save()
-            return redirect('index')
+            return redirect('listar_despesas')
     else:
         form = DespesaForm()
 
@@ -159,7 +159,7 @@ def excluir_receita(request, id):
         messages.success(request, "Receita excluída com sucesso.")
     
     # Sempre redireciona para o dashboard
-    return redirect('dashboard')
+    return redirect('listar_receitas')
 
 def relatorios(request):
     categorias = Categoria.objects.all()

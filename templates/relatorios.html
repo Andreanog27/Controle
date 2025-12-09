@@ -53,7 +53,8 @@
 <p>Nenhuma despesa encontrada.</p>
 {% endif %}
 
-
+<a href="/export/csv/" class="btn btn-success mt-3">Exportar CSV</a>
+<a href="/export/excel/" class="btn btn-success mt-3 ms-2">Exportar Excel</a>
 <a href="{% url 'index' %}" class="btn btn-secondary mt-3">Voltar</a>
 {% endblock %}
 

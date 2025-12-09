@@ -2,8 +2,20 @@
 {% load static %}
 {% block content %}
 
-<div class="container mt-4">
-    <h2 class="fw-bold mb-4">Dashboard Financeiro</h2>
+
+    <h2 class="mb-4">Dashboard Financeiro</h2>
+
+<div class="d-flex justify-content-end gap-2 mb-3">
+    <a href="{% url 'adicionar_receita' %}" class="btn btn-success">
+        Adicionar Receita
+    </a>
+
+    <a href="{% url 'adicionar_despesa' %}" class="btn btn-danger">
+        Adicionar Despesa
+    </a>
+</div>
+
+</br>
 
     <!-- Cards Resumo -->
     <div class="row g-4 mb-4">
